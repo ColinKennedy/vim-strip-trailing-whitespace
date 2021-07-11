@@ -159,8 +159,20 @@ function StripTrailingWhitespaceListener(bufnr, start, end, added, changes) abor
 
 	for change in a:changes
 		let [start, end, added] = [change.lnum, change.end, change.added]
-		" Remove existing in range
-		if start < end | call s:RemoveRange(start, end) | endif
+		" Don't remove an existing range if the range is not valid This
+		" prevents an issue with
+		" [vimspector](https://github.com/puremourning/vimspector) where this
+		" function errors in Neovim while typing in the "Watch" window.
+		"
+		try
+			if start < end
+				" Remove existing in range
+				call s:RemoveRange(start, end)
+			endif
+		catch
+			continue
+		endtry
+
 
 		" Adjust line numbers
 		if b:stw_root isnot v:null
